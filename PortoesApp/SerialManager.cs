@@ -18,6 +18,10 @@ namespace PortoesApp
             _serialPort.DataBits = 8;
             _serialPort.Parity = Parity.None;
             _serialPort.StopBits = StopBits.One;
+            
+            // Timeouts para evitar que o aplicativo trave caso haja problemas de comunicação
+            _serialPort.ReadTimeout = 1000;
+            _serialPort.WriteTimeout = 1000;
         }
 
         // Abre a conexão com o Arduino usando os parâmetros da interface
@@ -29,7 +33,15 @@ namespace PortoesApp
 
             _serialPort.PortName = portName;
             _serialPort.BaudRate = baudRate;
+            
+            // Garante que o Arduino será resetado ao conectar
+            _serialPort.DtrEnable = true;
+            
             _serialPort.Open();
+            
+            // Aguarda 2 segundos para o bootloader do Arduino finalizar
+            // Isso previne que os primeiros comandos sejam perdidos
+            System.Threading.Thread.Sleep(2000);
         }
 
         // Desconecta a comunicação de forma segura
@@ -46,7 +58,7 @@ namespace PortoesApp
         {
             if (IsOpen)
             {
-                _serialPort.Write(command);
+                _serialPort.WriteLine(command);
             }
             else
             {
